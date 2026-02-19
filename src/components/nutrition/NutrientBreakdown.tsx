@@ -134,10 +134,12 @@ export function NutrientBreakdown({
           <div key={title}>
             <div className="mb-3 flex items-center gap-2">
               {isDetail && Icon && (
-                <Icon
-                  className="h-4 w-4"
+                <span
+                  className="flex"
                   style={section.color ? { color: section.color } : undefined}
-                />
+                >
+                  <Icon className="h-4 w-4" />
+                </span>
               )}
               <h3 className="text-sm font-semibold text-muted-foreground">{title}</h3>
             </div>
