@@ -30,6 +30,7 @@ npm install
 NEXT_PUBLIC_SUPABASE_URL=your_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+GPT_SHARED_API_KEY=your_shared_gpt_api_key
 ```
 
 5. Start the dev server:
@@ -74,6 +75,6 @@ npm run dev
 - `DELETE /api/v1/body/:id` – Delete body metric
 - `DELETE /api/v1/workouts/:id` – Delete workout
 
-Delete endpoints accept either cookie session (app) or `X-API-KEY` header (GPT).
+Delete endpoints accept either cookie session (app) or `X-API-KEY` header (per-user key from Settings).
 
-Create API keys in Settings. Use them in your Custom GPT with the `X-API-KEY` header. The ingest API supports full workout sessions (strength with exercise/sets, cardio with activity/duration/distance).
+Ingestion uses a single shared `GPT_SHARED_API_KEY` env var. Include `userEmail` in the request body to associate logs with a registered user.

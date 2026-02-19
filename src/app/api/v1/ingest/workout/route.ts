@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getUserIdFromApiKey } from "@/lib/ingest-auth";
+import { validateSharedApiKey, getUserIdFromEmail } from "@/lib/ingest-auth";
 import { ingestWorkoutSchema } from "@/lib/validators/workout";
 
 export async function POST(request: Request) {
   const apiKey = request.headers.get("x-api-key");
-  const userId = await getUserIdFromApiKey(apiKey);
-  if (!userId) {
+  if (!validateSharedApiKey(apiKey)) {
     return NextResponse.json({ error: "Invalid or missing API key" }, { status: 401 });
   }
 
@@ -19,7 +18,12 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    const { startedAt, endedAt, title, notes, entries } = parsed.data;
+    const { userEmail, startedAt, endedAt, title, notes, entries } = parsed.data;
+
+    const userId = await getUserIdFromEmail(userEmail);
+    if (!userId) {
+      return NextResponse.json({ error: "User not found" }, { status: 400 });
+    }
 
     const supabase = createAdminClient();
     const { data: workout, error: workoutError } = await supabase

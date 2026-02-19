@@ -18,6 +18,7 @@ export const foodItemSchema = z.object({
 });
 
 export const ingestFoodSchema = z.object({
+  userEmail: z.string().email(),
   eatenAt: z.string().datetime(),
   mealType: z.string().default("snack"),
   rawText: z.string().optional(),

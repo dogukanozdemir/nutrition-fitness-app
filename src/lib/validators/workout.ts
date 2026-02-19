@@ -26,6 +26,7 @@ export const workoutEntrySchema = z.discriminatedUnion("type", [
 ]);
 
 export const ingestWorkoutSchema = z.object({
+  userEmail: z.string().email(),
   startedAt: z.string().datetime(),
   endedAt: z.string().datetime().optional(),
   title: z.string().default("Workout"),
