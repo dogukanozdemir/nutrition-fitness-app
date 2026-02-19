@@ -18,13 +18,25 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    const { userEmail, eatenAt, mealType, rawText, totals, ranges, confidenceScore, items } =
+    const { userEmail, eatenAt, mealType, rawText, ranges, confidenceScore, items } =
       parsed.data;
 
     const userId = await getUserIdFromEmail(userEmail);
     if (!userId) {
       return NextResponse.json({ error: "User not found" }, { status: 400 });
     }
+
+    const totals =
+      items.length > 0
+        ? items.reduce<Record<string, number>>((acc, item) => {
+            for (const [k, v] of Object.entries(item.nutrients ?? {})) {
+              if (typeof v === "number" && !Number.isNaN(v)) {
+                acc[k] = (acc[k] ?? 0) + v;
+              }
+            }
+            return acc;
+          }, {})
+        : {};
 
     const supabase = createAdminClient();
     const { data: log, error: logError } = await supabase
@@ -34,7 +46,7 @@ export async function POST(request: Request) {
         eaten_at: eatenAt,
         meal_type: mealType,
         raw_text: rawText ?? null,
-        totals: totals ?? {},
+        totals,
         ranges: ranges ?? null,
         confidence_score: confidenceScore ?? null,
       })
@@ -66,7 +78,7 @@ export async function POST(request: Request) {
               quantity: null,
               unit: null,
               notes: null,
-              nutrients: totals ?? {},
+              nutrients: totals,
               ranges: ranges ?? null,
               confidence_score: confidenceScore ?? null,
             },

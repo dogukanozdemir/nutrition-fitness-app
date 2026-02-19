@@ -47,31 +47,39 @@ export async function GET(request: Request) {
   }> = [];
 
   for (const log of logs ?? []) {
-    const logTotals = (log.totals as Record<string, number>) ?? {};
-    for (const [k, v] of Object.entries(logTotals)) {
-      if (typeof v === "number") totals[k] = (totals[k] ?? 0) + v;
-    }
-
     const { data: items } = await supabase
       .from("food_items")
       .select("id, name, brand, quantity, unit, notes, nutrients")
       .eq("food_log_id", log.id)
       .order("created_at", { ascending: true });
 
-    logsWithItems.push({
-      id: log.id,
-      eatenAt: log.eaten_at,
-      mealType: log.meal_type,
-      rawText: log.raw_text ?? "",
-      items: (items ?? []).map((i) => ({
+    const itemList = (items ?? []).map((i) => {
+      const raw = (i.nutrients as Record<string, number>) ?? {};
+      const nutrients: Record<string, number> = {};
+      for (const [k, v] of Object.entries(raw)) {
+        if (typeof v === "number" && !Number.isNaN(v)) {
+          const key = k.toLowerCase();
+          nutrients[key] = (nutrients[key] ?? 0) + v;
+          totals[key] = (totals[key] ?? 0) + v;
+        }
+      }
+      return {
         id: i.id,
         name: i.name ?? null,
         brand: i.brand ?? null,
         quantity: i.quantity ?? null,
         unit: i.unit ?? null,
         notes: i.notes ?? null,
-        nutrients: (i.nutrients as Record<string, number>) ?? {},
-      })),
+        nutrients,
+      };
+    });
+
+    logsWithItems.push({
+      id: log.id,
+      eatenAt: log.eaten_at,
+      mealType: log.meal_type,
+      rawText: log.raw_text ?? "",
+      items: itemList,
     });
   }
 

@@ -150,16 +150,6 @@ components:
         rawText:
           type: string
           description: Human-readable description of what was eaten (e.g. "Grilled salmon with broccoli")
-        totals:
-          type: object
-          additionalProperties:
-            oneOf:
-              - type: number
-              - type: "null"
-          description: |
-            Aggregate nutrients for the meal. Keys can be any nutrient name.
-            Common: calories, protein, carbs, fat, fiber, sodium, potassium,
-            calcium, iron, vitaminA, vitaminC, vitaminD, etc.
         ranges:
           type: object
           additionalProperties:
@@ -180,8 +170,8 @@ components:
         items:
           type: array
           description: |
-            For multi-item meals, one object per food item. If empty, totals
-            are used as a single-item meal.
+            Food items with name, quantity, unit, and nutrients. For single-item
+            meals, send one item. Meal totals are computed from items server-side.
           items:
             $ref: '#/components/schemas/FoodItem'
 
