@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Nutrition & Fitness PWA
 
-## Getting Started
+A mobile-first web app for tracking nutrition and fitness. Data ingestion is powered by a Custom GPT that calls the API; the app stores and visualizes.
 
-First, run the development server:
+## Tech Stack
+
+- Next.js 16 (App Router) + TypeScript
+- TailwindCSS + shadcn/ui
+- Framer Motion + Recharts
+- Supabase (Postgres + Auth)
+
+## Setup
+
+1. Clone and install:
+
+```bash
+npm install
+```
+
+2. Create a Supabase project at [supabase.com](https://supabase.com).
+
+3. Run the migrations in the Supabase SQL editor (in order):
+   - `supabase/migrations/001_initial_schema.sql`
+   - `supabase/migrations/002_workout_entry_exercise.sql`
+
+4. Copy `.env.example` to `.env.local` and fill in:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=your_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+```
+
+5. Start the dev server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Vercel Deployment
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Connect your repo to Vercel.
+2. Add the environment variables in Project Settings.
+3. Deploy. No extra config needed.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## API Endpoints
 
-## Learn More
+### Auth (cookie session)
 
-To learn more about Next.js, take a look at the following resources:
+- `POST /api/v1/auth/register` – Register
+- `POST /api/v1/auth/login` – Login
+- `POST /api/v1/auth/logout` – Logout
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Ingestion (X-API-KEY header)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `POST /api/v1/ingest/food` – Ingest food log
+- `POST /api/v1/ingest/body` – Ingest body metrics
+- `POST /api/v1/ingest/workout` – Ingest workout
 
-## Deploy on Vercel
+### Read (cookie auth)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `GET /api/v1/food/day?date=YYYY-MM-DD` – Food for a day
+- `GET /api/v1/food/item/:id` – Food item detail
+- `GET /api/v1/body/history?from=&to=` – Body metrics
+- `GET /api/v1/workouts?from=&to=` – Workouts list
+- `GET /api/v1/workouts/:id` – Workout detail
+- `POST /api/v1/settings/api-keys` – Create API key
+- `DELETE /api/v1/settings/api-keys/:id` – Revoke API key
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Delete (cookie auth or X-API-KEY)
+
+- `DELETE /api/v1/food/item/:id` – Delete food item
+- `DELETE /api/v1/body/:id` – Delete body metric
+- `DELETE /api/v1/workouts/:id` – Delete workout
+
+Delete endpoints accept either cookie session (app) or `X-API-KEY` header (GPT).
+
+Create API keys in Settings. Use them in your Custom GPT with the `X-API-KEY` header. The ingest API supports full workout sessions (strength with exercise/sets, cardio with activity/duration/distance).

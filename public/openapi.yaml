@@ -1,0 +1,322 @@
+openapi: 3.0.3
+info:
+  title: Nutrition & Fitness App API
+  description: |
+    API for the Nutrition & Fitness PWA. Use these endpoints to ingest food logs,
+    body metrics, and workouts from a Custom GPT or other integrations.
+
+    Note: The schema is publicly accessible. Sending requests to these endpoints
+    requires the X-API-KEY header. Create API keys in the app Settings.
+  version: 1.0.0
+
+servers:
+  - url: https://your-app.vercel.app
+    description: Production (replace with your deployed URL)
+  - url: http://localhost:3000
+    description: Local development
+
+paths:
+  /api/v1/ingest/food:
+    post:
+      summary: Ingest food log
+      description: |
+        Log a meal or food entry. Supports full nutrient profiles including macros,
+        fiber, vitamins, minerals, and electrolytes. Use totals for a single-item
+        meal, or items for a multi-item meal with per-item nutrients.
+      operationId: ingestFood
+      tags:
+        - Ingest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IngestFoodRequest'
+      responses:
+        '200':
+          description: Food log created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    description: ID of the created food log
+                  ok:
+                    type: boolean
+                    example: true
+        '400':
+          description: Validation failed (invalid body)
+        '401':
+          description: Invalid or missing API key
+        '500':
+          description: Server error
+
+  /api/v1/ingest/body:
+    post:
+      summary: Ingest body metrics
+      description: |
+        Log a body measurement (weight, body fat, etc.). At minimum, weight in kg
+        and measuredAt timestamp are required.
+      operationId: ingestBody
+      tags:
+        - Ingest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IngestBodyRequest'
+      responses:
+        '200':
+          description: Body metric created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    description: ID of the created body metric
+                  ok:
+                    type: boolean
+                    example: true
+        '400':
+          description: Validation failed
+        '401':
+          description: Invalid or missing API key
+        '500':
+          description: Server error
+
+  /api/v1/ingest/workout:
+    post:
+      summary: Ingest workout
+      description: |
+        Log a workout session. Can include strength exercises (with sets, reps,
+        weight) and/or cardio activities (duration, distance, calories burned).
+      operationId: ingestWorkout
+      tags:
+        - Ingest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IngestWorkoutRequest'
+      responses:
+        '200':
+          description: Workout created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    description: ID of the created workout
+                  ok:
+                    type: boolean
+                    example: true
+        '400':
+          description: Validation failed
+        '401':
+          description: Invalid or missing API key
+        '500':
+          description: Server error
+
+components:
+  schemas:
+    IngestFoodRequest:
+      type: object
+      required:
+        - eatenAt
+      properties:
+        eatenAt:
+          type: string
+          format: date-time
+          description: When the food was eaten (ISO 8601, e.g. 2025-02-19T12:00:00.000Z)
+        mealType:
+          type: string
+          enum: [breakfast, lunch, dinner, snack]
+          default: snack
+          description: Meal category for grouping in the app
+        rawText:
+          type: string
+          description: Human-readable description of what was eaten (e.g. "Grilled salmon with broccoli")
+        totals:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: number
+              - type: "null"
+          description: |
+            Aggregate nutrients for the meal. Keys can be any nutrient name.
+            Common: calories, protein, carbs, fat, fiber, sodium, potassium,
+            calcium, iron, vitaminA, vitaminC, vitaminD, etc.
+        ranges:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              low:
+                type: number
+                description: Lower bound of estimated range (optional)
+              high:
+                type: number
+                description: Upper bound of estimated range (optional)
+          description: Optional confidence ranges for nutrients (e.g. GPT uncertainty)
+        confidenceScore:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Overall confidence in the nutrient estimates (0–1)
+        items:
+          type: array
+          description: |
+            For multi-item meals, one object per food item. If empty, totals
+            are used as a single-item meal.
+          items:
+            $ref: '#/components/schemas/FoodItem'
+
+    FoodItem:
+      type: object
+      properties:
+        nutrients:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: number
+              - type: "null"
+          description: Nutrient values for this specific item (calories, protein, etc.)
+        ranges:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              low: { type: number }
+              high: { type: number }
+          description: Optional confidence ranges per nutrient
+        confidenceScore:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Confidence in this item's nutrient estimates
+
+    IngestBodyRequest:
+      type: object
+      required:
+        - measuredAt
+        - weightKg
+      properties:
+        measuredAt:
+          type: string
+          format: date-time
+          description: When the measurement was taken (ISO 8601)
+        weightKg:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+          description: Weight in kilograms (required)
+        bodyFatPercent:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: Body fat percentage (optional)
+        leanMassKg:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+          description: Lean mass in kg (optional)
+        waistCm:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+          description: Waist circumference in cm (optional)
+
+    IngestWorkoutRequest:
+      type: object
+      required:
+        - startedAt
+      properties:
+        startedAt:
+          type: string
+          format: date-time
+          description: When the workout started (ISO 8601)
+        endedAt:
+          type: string
+          format: date-time
+          description: When the workout ended (optional)
+        title:
+          type: string
+          default: Workout
+          description: Workout name or session title
+        notes:
+          type: string
+          description: Free-form notes about the workout
+        entries:
+          type: array
+          default: []
+          description: Strength and/or cardio exercises in this session
+          items:
+            $ref: '#/components/schemas/WorkoutEntry'
+
+    WorkoutEntry:
+      oneOf:
+        - $ref: '#/components/schemas/StrengthEntry'
+        - $ref: '#/components/schemas/CardioEntry'
+      discriminator:
+        propertyName: type
+
+    StrengthEntry:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum: [strength]
+          description: Entry type
+        exercise:
+          type: string
+          description: Exercise name (e.g. "Bench press", "Squats")
+        sets:
+          type: array
+          description: List of sets (reps, weight, or duration per set)
+          items:
+            type: object
+            properties:
+              reps:
+                type: number
+                description: Number of repetitions
+              weightKg:
+                type: number
+                description: Weight used in kg
+              durationSeconds:
+                type: number
+                description: Hold/time under tension in seconds
+
+    CardioEntry:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum: [cardio]
+          description: Entry type
+        activity:
+          type: string
+          description: Activity name (e.g. "Running", "Cycling")
+        durationMinutes:
+          type: number
+          description: Duration in minutes
+        distanceKm:
+          type: number
+          description: Distance in kilometers
+        caloriesBurned:
+          type: number
+          description: Estimated calories burned
