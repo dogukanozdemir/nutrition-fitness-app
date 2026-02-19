@@ -44,6 +44,11 @@ export async function POST(request: Request) {
       items.length > 0
         ? items.map((item) => ({
             food_log_id: log.id,
+            name: item.name ?? null,
+            brand: item.brand ?? null,
+            quantity: item.quantity ?? null,
+            unit: item.unit ?? null,
+            notes: item.notes ?? null,
             nutrients: item.nutrients ?? {},
             ranges: item.ranges ?? null,
             confidence_score: item.confidenceScore ?? null,
@@ -51,6 +56,11 @@ export async function POST(request: Request) {
         : [
             {
               food_log_id: log.id,
+              name: null,
+              brand: null,
+              quantity: null,
+              unit: null,
+              notes: null,
               nutrients: totals ?? {},
               ranges: ranges ?? null,
               confidence_score: confidenceScore ?? null,

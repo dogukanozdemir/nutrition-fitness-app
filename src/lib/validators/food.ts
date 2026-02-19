@@ -7,6 +7,11 @@ const rangeSchema = z.object({
 }).optional();
 
 export const foodItemSchema = z.object({
+  name: z.string().optional(),
+  brand: z.string().optional(),
+  quantity: z.number().min(0).optional(),
+  unit: z.string().optional(),
+  notes: z.string().optional(),
   nutrients: z.record(z.string(), nutrientValue).default({}),
   ranges: z.record(z.string(), rangeSchema).optional(),
   confidenceScore: z.number().min(0).max(1).optional(),

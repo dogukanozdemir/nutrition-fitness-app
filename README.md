@@ -22,6 +22,7 @@ npm install
 3. Run the migrations in the Supabase SQL editor (in order):
    - `supabase/migrations/001_initial_schema.sql`
    - `supabase/migrations/002_workout_entry_exercise.sql`
+   - `supabase/migrations/003_food_item_naming.sql`
 
 4. Copy `.env.example` to `.env.local` and fill in:
 

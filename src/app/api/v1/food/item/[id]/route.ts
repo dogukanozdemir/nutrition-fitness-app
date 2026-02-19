@@ -16,7 +16,7 @@ export async function GET(
 
   const { data: item, error } = await supabase
     .from("food_items")
-    .select("id, food_log_id, nutrients, ranges, confidence_score")
+    .select("id, food_log_id, name, brand, quantity, unit, notes, nutrients, ranges, confidence_score")
     .eq("id", id)
     .single();
 
@@ -39,6 +39,11 @@ export async function GET(
     rawText: log.raw_text ?? "",
     eatenAt: log.eaten_at,
     mealType: log.meal_type,
+    name: item.name ?? null,
+    brand: item.brand ?? null,
+    quantity: item.quantity ?? null,
+    unit: item.unit ?? null,
+    notes: item.notes ?? null,
     nutrients: item.nutrients ?? {},
     ranges: item.ranges ?? null,
     confidenceScore: item.confidence_score ?? null,

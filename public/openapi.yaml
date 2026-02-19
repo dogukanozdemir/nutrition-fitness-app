@@ -10,10 +10,8 @@ info:
   version: 1.0.0
 
 servers:
-  - url: https://your-app.vercel.app
-    description: Production (replace with your deployed URL)
-  - url: http://localhost:3000
-    description: Local development
+  - url: https://nutrition-fitness-app-nine.vercel.app
+    description: Production
 
 paths:
   /api/v1/ingest/food:
@@ -185,6 +183,22 @@ components:
     FoodItem:
       type: object
       properties:
+        name:
+          type: string
+          description: Item name (e.g. "Eggs", "Cheddar cheese")
+        brand:
+          type: string
+          description: Brand name (optional)
+        quantity:
+          type: number
+          minimum: 0
+          description: Amount (e.g. 2 for "x2", 30 for "30g")
+        unit:
+          type: string
+          description: Unit (e.g. "g", "ml", "oz"). Omit for count/servings.
+        notes:
+          type: string
+          description: Free-form notes
         nutrients:
           type: object
           additionalProperties:

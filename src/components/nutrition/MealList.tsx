@@ -10,24 +10,43 @@ interface MealLog {
   eatenAt: string;
   mealType: string;
   rawText: string;
-  items: Array<{ id: string; nutrients?: Record<string, number> }>;
+  items: Array<{
+    id: string;
+    name?: string | null;
+    brand?: string | null;
+    quantity?: number | null;
+    unit?: string | null;
+    notes?: string | null;
+    nutrients?: Record<string, number>;
+  }>;
 }
 
 interface FlatEntry {
   id: string;
-  rawText: string;
+  displayName: string;
   nutrients: Record<string, number>;
   mealType: string;
+}
+
+function formatItemDisplayName(
+  item: { name?: string | null; quantity?: number | null; unit?: string | null },
+  logRawText: string,
+  isSingleItem: boolean
+): string {
+  const name = item.name ?? (isSingleItem ? logRawText : null) ?? "Food entry";
+  if (item.quantity == null) return name;
+  return item.unit ? `${name} ${item.quantity}${item.unit}` : `${name} x${item.quantity}`;
 }
 
 export function MealList({ logs }: { logs: MealLog[] }) {
   const grouped = logs.reduce<Record<string, FlatEntry[]>>((acc, log) => {
     const key = log.mealType || "other";
     if (!acc[key]) acc[key] = [];
+    const isSingleItem = log.items.length === 1;
     for (const item of log.items) {
       acc[key].push({
         id: item.id,
-        rawText: log.items.length === 1 ? log.rawText : log.rawText,
+        displayName: formatItemDisplayName(item, log.rawText, isSingleItem),
         nutrients: item.nutrients ?? {},
         mealType: log.mealType,
       });

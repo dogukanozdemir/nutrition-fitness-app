@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 interface FoodEntryCardProps {
   entry: {
     id: string;
-    rawText: string;
+    displayName: string;
     nutrients: Record<string, number>;
   };
 }
@@ -22,7 +22,7 @@ export function FoodEntryCard({ entry }: FoodEntryCardProps) {
         <Card className="rounded-2xl border-border/50 shadow-sm transition-colors hover:bg-accent/50">
           <CardContent className="flex items-center justify-between p-4">
             <div className="min-w-0 flex-1">
-              <p className="truncate font-medium">{entry.rawText || "Food entry"}</p>
+              <p className="truncate font-medium">{entry.displayName}</p>
               <p className="text-sm text-muted-foreground">
                 {calories > 0 ? `${Math.round(calories)} kcal` : "—"}
               </p>

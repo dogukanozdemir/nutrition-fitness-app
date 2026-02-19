@@ -46,6 +46,11 @@ export default function FoodDetailPage() {
     rawText: string;
     eatenAt?: string;
     mealType?: string;
+    name?: string | null;
+    brand?: string | null;
+    quantity?: number | null;
+    unit?: string | null;
+    notes?: string | null;
     nutrients: Record<string, number>;
     ranges?: Record<string, { low?: number; high?: number }> | null;
     confidenceScore?: number | null;
@@ -167,8 +172,20 @@ export default function FoodDetailPage() {
             </p>
           )}
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            {data.rawText || "Food entry"}
+            {data.name
+              ? data.quantity != null
+                ? data.unit
+                  ? `${data.name} ${data.quantity}${data.unit}`
+                  : `${data.name} x${data.quantity}`
+                : data.name
+              : data.rawText || "Food entry"}
           </h1>
+          {data.brand && (
+            <p className="mt-1 text-sm text-muted-foreground">{data.brand}</p>
+          )}
+          {data.notes && (
+            <p className="mt-1 text-sm text-muted-foreground">{data.notes}</p>
+          )}
         </div>
       </motion.div>
 

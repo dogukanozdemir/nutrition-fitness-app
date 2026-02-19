@@ -35,7 +35,15 @@ export async function GET(request: Request) {
     eatenAt: string;
     mealType: string;
     rawText: string;
-    items: Array<{ id: string; nutrients?: Record<string, number> }>;
+    items: Array<{
+      id: string;
+      name?: string | null;
+      brand?: string | null;
+      quantity?: number | null;
+      unit?: string | null;
+      notes?: string | null;
+      nutrients?: Record<string, number>;
+    }>;
   }> = [];
 
   for (const log of logs ?? []) {
@@ -46,7 +54,7 @@ export async function GET(request: Request) {
 
     const { data: items } = await supabase
       .from("food_items")
-      .select("id, nutrients")
+      .select("id, name, brand, quantity, unit, notes, nutrients")
       .eq("food_log_id", log.id)
       .order("created_at", { ascending: true });
 
@@ -57,6 +65,11 @@ export async function GET(request: Request) {
       rawText: log.raw_text ?? "",
       items: (items ?? []).map((i) => ({
         id: i.id,
+        name: i.name ?? null,
+        brand: i.brand ?? null,
+        quantity: i.quantity ?? null,
+        unit: i.unit ?? null,
+        notes: i.notes ?? null,
         nutrients: (i.nutrients as Record<string, number>) ?? {},
       })),
     });
