@@ -6,13 +6,13 @@ const setSchema = z.object({
   durationSeconds: z.number().optional(),
 });
 
-const strengthEntrySchema = z.object({
+export const strengthEntrySchema = z.object({
   type: z.literal("strength"),
   exercise: z.string().optional(),
   sets: z.array(setSchema).default([]),
 });
 
-const cardioEntrySchema = z.object({
+export const cardioEntrySchema = z.object({
   type: z.literal("cardio"),
   activity: z.string().optional(),
   durationMinutes: z.number().optional(),

@@ -1,341 +1,596 @@
-openapi: 3.0.3
-info:
-  title: Nutrition & Fitness App API
-  description: |
-    API for the Nutrition & Fitness PWA. Use these endpoints to ingest food logs,
-    body metrics, and workouts from a Custom GPT or other integrations.
+"openapi": "3.1.1"
+"info":
+  "title": "Nutrition & Fitness App API"
+  "description": "API for the Nutrition & Fitness PWA. Use these endpoints to ingest food logs,
 
-    Note: The schema is publicly accessible. Sending requests requires the
-    X-API-KEY header (shared key) and userEmail in the body.
-  version: 1.0.0
+    \    body metrics, and workouts from a Custom GPT or other integrations.
 
-servers:
-  - url: https://nutrition-fitness-app-nine.vercel.app
-    description: Production
 
-paths:
-  /api/v1/ingest/food:
-    post:
-      summary: Ingest food log
-      description: |
-        Log a meal or food entry. Supports full nutrient profiles including macros,
-        fiber, vitamins, minerals, and electrolytes. Use totals for a single-item
-        meal, or items for a multi-item meal with per-item nutrients.
-      operationId: ingestFood
-      tags:
-        - Ingest
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/IngestFoodRequest'
-      responses:
-        '200':
-          description: Food log created successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                    format: uuid
-                    description: ID of the created food log
-                  ok:
-                    type: boolean
-                    example: true
-        '400':
-          description: Validation failed (invalid body) or User not found
-        '401':
-          description: Invalid or missing API key
-        '500':
-          description: Server error
+    \    Note: The schema is publicly accessible. Sending requests requires the
 
-  /api/v1/ingest/body:
-    post:
-      summary: Ingest body metrics
-      description: |
-        Log a body measurement (weight, body fat, etc.). At minimum, weight in kg
-        and measuredAt timestamp are required.
-      operationId: ingestBody
-      tags:
-        - Ingest
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/IngestBodyRequest'
-      responses:
-        '200':
-          description: Body metric created successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                    format: uuid
-                    description: ID of the created body metric
-                  ok:
-                    type: boolean
-                    example: true
-        '400':
-          description: Validation failed or User not found
-        '401':
-          description: Invalid or missing API key
-        '500':
-          description: Server error
+    \    X-API-KEY header (shared key) and userEmail in the body."
+  "version": "1.0.0"
+"servers":
+  - "url": "https://nutrition-fitness-app-nine.vercel.app"
+    "description": "Production"
+"security":
+  - "apiKeyAuth": []
+"paths":
+  "/api/v1/ingest/food":
+    "post":
+      "summary": "Ingest food log"
+      "description": "Log a meal or food entry. Supports full nutrient profiles including macros,
 
-  /api/v1/ingest/workout:
-    post:
-      summary: Ingest workout
-      description: |
-        Log a workout session. Can include strength exercises (with sets, reps,
-        weight) and/or cardio activities (duration, distance, calories burned).
-      operationId: ingestWorkout
-      tags:
-        - Ingest
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/IngestWorkoutRequest'
-      responses:
-        '200':
-          description: Workout created successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                    format: uuid
-                    description: ID of the created workout
-                  ok:
-                    type: boolean
-                    example: true
-        '400':
-          description: Validation failed or User not found
-        '401':
-          description: Invalid or missing API key
-        '500':
-          description: Server error
+        \        fiber, vitamins, minerals, and electrolytes. Send items with nutrients per
 
-components:
-  schemas:
-    IngestFoodRequest:
-      type: object
-      required:
-        - userEmail
-        - eatenAt
-      properties:
-        userEmail:
-          type: string
-          format: email
-          description: Email of the registered user to associate this log with.
-        eatenAt:
-          type: string
-          format: date-time
-          description: When the food was eaten (ISO 8601, e.g. 2025-02-19T12:00:00.000Z)
-        mealType:
-          type: string
-          enum: [breakfast, lunch, dinner, snack]
-          default: snack
-          description: Meal category for grouping in the app
-        rawText:
-          type: string
-          description: Human-readable description of what was eaten (e.g. "Grilled salmon with broccoli")
-        ranges:
-          type: object
-          additionalProperties:
-            type: object
-            properties:
-              low:
-                type: number
-                description: Lower bound of estimated range (optional)
-              high:
-                type: number
-                description: Upper bound of estimated range (optional)
-          description: Optional confidence ranges for nutrients (e.g. GPT uncertainty)
-        confidenceScore:
-          type: number
-          minimum: 0
-          maximum: 1
-          description: Overall confidence in the nutrient estimates (0–1)
-        items:
-          type: array
-          description: |
-            Food items with name, quantity, unit, and nutrients. For single-item
-            meals, send one item. Meal totals are computed from items server-side.
-          items:
-            $ref: '#/components/schemas/FoodItem'
+        \        food item; totals are computed server-side."
+      "operationId": "ingestFood"
+      "tags":
+        - "Ingest"
+      "requestBody":
+        "required": true
+        "content":
+          "application/json":
+            "schema":
+              "type": "object"
+              "properties":
+                "userEmail":
+                  "type": "string"
+                  "format": "email"
+                  "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                "eatenAt":
+                  "type": "string"
+                  "format": "date-time"
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                "mealType":
+                  "default": "snack"
+                  "type": "string"
+                "rawText":
+                  "type": "string"
+                "ranges":
+                  "type": "object"
+                  "additionalProperties":
+                    "type": "object"
+                    "properties":
+                      "low":
+                        "type": "number"
+                      "high":
+                        "type": "number"
+                "confidenceScore":
+                  "type": "number"
+                  "minimum": 0
+                  "maximum": 1
+                "items":
+                  "type": "array"
+                  "description": "Food items with nutrients per item. Totals are computed server-side. If empty, an empty log is created."
+                  "items":
+                    "type": "object"
+                    "properties":
+                      "name":
+                        "type": "string"
+                      "brand":
+                        "type": "string"
+                      "quantity":
+                        "type": "number"
+                        "minimum": 0
+                      "unit":
+                        "type": "string"
+                      "notes":
+                        "type": "string"
+                      "nutrients":
+                        "type": "object"
+                        "additionalProperties":
+                          "anyOf":
+                            - "type": "number"
+                            - "type": "string"
+                              "nullable": true
+                              "enum":
+                                - null
+                      "ranges":
+                        "type": "object"
+                        "additionalProperties":
+                          "type": "object"
+                          "properties":
+                            "low":
+                              "type": "number"
+                            "high":
+                              "type": "number"
+                      "confidenceScore":
+                        "type": "number"
+                        "minimum": 0
+                        "maximum": 1
+                    "required":
+                      - "nutrients"
+              "required":
+                - "userEmail"
+                - "eatenAt"
+      "responses":
+        "200":
+          "description": "Food log created successfully"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+                "properties":
+                  "id":
+                    "type": "string"
+                    "format": "uuid"
+                    "description": "ID of the created food log"
+                  "ok":
+                    "type": "boolean"
+                    "example": true
+        "400":
+          "description": "Validation failed (invalid body) or User not found"
+        "401":
+          "description": "Invalid or missing API key"
+        "500":
+          "description": "Server error"
+  "/api/v1/ingest/body":
+    "post":
+      "summary": "Ingest body metrics"
+      "description": "Log a body measurement (weight, body fat, etc.). At minimum, weight in kg
 
-    FoodItem:
-      type: object
-      properties:
-        name:
-          type: string
-          description: Item name (e.g. "Eggs", "Cheddar cheese")
-        brand:
-          type: string
-          description: Brand name (optional)
-        quantity:
-          type: number
-          minimum: 0
-          description: Amount (e.g. 2 for "x2", 30 for "30g")
-        unit:
-          type: string
-          description: Unit (e.g. "g", "ml", "oz"). Omit for count/servings.
-        notes:
-          type: string
-          description: Free-form notes
-        nutrients:
-          type: object
-          additionalProperties:
-            oneOf:
-              - type: number
-              - type: "null"
-          description: Nutrient values for this specific item (calories, protein, etc.)
-        ranges:
-          type: object
-          additionalProperties:
-            type: object
-            properties:
-              low: { type: number }
-              high: { type: number }
-          description: Optional confidence ranges per nutrient
-        confidenceScore:
-          type: number
-          minimum: 0
-          maximum: 1
-          description: Confidence in this item's nutrient estimates
+        \        and measuredAt timestamp are required."
+      "operationId": "ingestBody"
+      "tags":
+        - "Ingest"
+      "requestBody":
+        "required": true
+        "content":
+          "application/json":
+            "schema":
+              "type": "object"
+              "properties":
+                "userEmail":
+                  "type": "string"
+                  "format": "email"
+                  "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                "measuredAt":
+                  "type": "string"
+                  "format": "date-time"
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                "weightKg":
+                  "type": "number"
+                  "minimum": 0
+                  "exclusiveMinimum": true
+                "bodyFatPercent":
+                  "type": "number"
+                  "minimum": 0
+                  "maximum": 100
+                "leanMassKg":
+                  "type": "number"
+                  "minimum": 0
+                  "exclusiveMinimum": true
+                "waistCm":
+                  "type": "number"
+                  "minimum": 0
+                  "exclusiveMinimum": true
+              "required":
+                - "userEmail"
+                - "measuredAt"
+                - "weightKg"
+      "responses":
+        "200":
+          "description": "Body metric created successfully"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+                "properties":
+                  "id":
+                    "type": "string"
+                    "format": "uuid"
+                    "description": "ID of the created body metric"
+                  "ok":
+                    "type": "boolean"
+                    "example": true
+        "400":
+          "description": "Validation failed or User not found"
+        "401":
+          "description": "Invalid or missing API key"
+        "500":
+          "description": "Server error"
+  "/api/v1/ingest/workout":
+    "post":
+      "summary": "Ingest workout"
+      "description": "Log a workout session. Can include strength exercises (with sets, reps,
 
-    IngestBodyRequest:
-      type: object
-      required:
-        - userEmail
-        - measuredAt
-        - weightKg
-      properties:
-        userEmail:
-          type: string
-          format: email
-          description: Email of the registered user to associate this log with.
-        measuredAt:
-          type: string
-          format: date-time
-          description: When the measurement was taken (ISO 8601)
-        weightKg:
-          type: number
-          minimum: 0
-          exclusiveMinimum: true
-          description: Weight in kilograms (required)
-        bodyFatPercent:
-          type: number
-          minimum: 0
-          maximum: 100
-          description: Body fat percentage (optional)
-        leanMassKg:
-          type: number
-          minimum: 0
-          exclusiveMinimum: true
-          description: Lean mass in kg (optional)
-        waistCm:
-          type: number
-          minimum: 0
-          exclusiveMinimum: true
-          description: Waist circumference in cm (optional)
-
-    IngestWorkoutRequest:
-      type: object
-      required:
-        - userEmail
-        - startedAt
-      properties:
-        userEmail:
-          type: string
-          format: email
-          description: Email of the registered user to associate this log with.
-        startedAt:
-          type: string
-          format: date-time
-          description: When the workout started (ISO 8601)
-        endedAt:
-          type: string
-          format: date-time
-          description: When the workout ended (optional)
-        title:
-          type: string
-          default: Workout
-          description: Workout name or session title
-        notes:
-          type: string
-          description: Free-form notes about the workout
-        entries:
-          type: array
-          default: []
-          description: Strength and/or cardio exercises in this session
-          items:
-            $ref: '#/components/schemas/WorkoutEntry'
-
-    WorkoutEntry:
-      oneOf:
-        - $ref: '#/components/schemas/StrengthEntry'
-        - $ref: '#/components/schemas/CardioEntry'
-      discriminator:
-        propertyName: type
-
-    StrengthEntry:
-      type: object
-      required:
-        - type
-      properties:
-        type:
-          type: string
-          enum: [strength]
-          description: Entry type
-        exercise:
-          type: string
-          description: Exercise name (e.g. "Bench press", "Squats")
-        sets:
-          type: array
-          description: List of sets (reps, weight, or duration per set)
-          items:
-            type: object
-            properties:
-              reps:
-                type: number
-                description: Number of repetitions
-              weightKg:
-                type: number
-                description: Weight used in kg
-              durationSeconds:
-                type: number
-                description: Hold/time under tension in seconds
-
-    CardioEntry:
-      type: object
-      required:
-        - type
-      properties:
-        type:
-          type: string
-          enum: [cardio]
-          description: Entry type
-        activity:
-          type: string
-          description: Activity name (e.g. "Running", "Cycling")
-        durationMinutes:
-          type: number
-          description: Duration in minutes
-        distanceKm:
-          type: number
-          description: Distance in kilometers
-        caloriesBurned:
-          type: number
-          description: Estimated calories burned
+        \        weight) and/or cardio activities (duration, distance, calories burned)."
+      "operationId": "ingestWorkout"
+      "tags":
+        - "Ingest"
+      "requestBody":
+        "required": true
+        "content":
+          "application/json":
+            "schema":
+              "type": "object"
+              "properties":
+                "userEmail":
+                  "type": "string"
+                  "format": "email"
+                  "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                "startedAt":
+                  "type": "string"
+                  "format": "date-time"
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                "endedAt":
+                  "type": "string"
+                  "format": "date-time"
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                "title":
+                  "default": "Workout"
+                  "type": "string"
+                "notes":
+                  "type": "string"
+                "entries":
+                  "type": "array"
+                  "default": []
+                  "description": "Strength and/or cardio exercises in this session"
+                  "items":
+                    "oneOf":
+                      - "type": "object"
+                        "properties":
+                          "type":
+                            "type": "string"
+                            "enum":
+                              - "strength"
+                          "exercise":
+                            "type": "string"
+                          "sets":
+                            "default": []
+                            "type": "array"
+                            "items":
+                              "type": "object"
+                              "properties":
+                                "reps":
+                                  "type": "number"
+                                "weightKg":
+                                  "type": "number"
+                                "durationSeconds":
+                                  "type": "number"
+                        "required":
+                          - "type"
+                      - "type": "object"
+                        "properties":
+                          "type":
+                            "type": "string"
+                            "enum":
+                              - "cardio"
+                          "activity":
+                            "type": "string"
+                          "durationMinutes":
+                            "type": "number"
+                          "distanceKm":
+                            "type": "number"
+                          "caloriesBurned":
+                            "type": "number"
+                        "required":
+                          - "type"
+                    "discriminator":
+                      "propertyName": "type"
+              "required":
+                - "userEmail"
+                - "startedAt"
+      "responses":
+        "200":
+          "description": "Workout created successfully"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+                "properties":
+                  "id":
+                    "type": "string"
+                    "format": "uuid"
+                    "description": "ID of the created workout"
+                  "ok":
+                    "type": "boolean"
+                    "example": true
+        "400":
+          "description": "Validation failed or User not found"
+        "401":
+          "description": "Invalid or missing API key"
+        "500":
+          "description": "Server error"
+"components":
+  "securitySchemes":
+    "apiKeyAuth":
+      "type": "apiKey"
+      "in": "header"
+      "name": "X-API-KEY"
+      "description": "Shared API key for authentication. Configure this in the app settings and add it to your GPT Action."
+  "schemas":
+    "IngestFoodRequest":
+      "type": "object"
+      "properties":
+        "userEmail":
+          "type": "string"
+          "format": "email"
+          "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+        "eatenAt":
+          "type": "string"
+          "format": "date-time"
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+        "mealType":
+          "default": "snack"
+          "type": "string"
+        "rawText":
+          "type": "string"
+        "ranges":
+          "type": "object"
+          "additionalProperties":
+            "type": "object"
+            "properties":
+              "low":
+                "type": "number"
+              "high":
+                "type": "number"
+        "confidenceScore":
+          "type": "number"
+          "minimum": 0
+          "maximum": 1
+        "items":
+          "type": "array"
+          "description": "Food items with nutrients per item. Totals are computed server-side. If empty, an empty log is created."
+          "items":
+            "type": "object"
+            "properties":
+              "name":
+                "type": "string"
+              "brand":
+                "type": "string"
+              "quantity":
+                "type": "number"
+                "minimum": 0
+              "unit":
+                "type": "string"
+              "notes":
+                "type": "string"
+              "nutrients":
+                "type": "object"
+                "additionalProperties":
+                  "anyOf":
+                    - "type": "number"
+                    - "type": "string"
+                      "nullable": true
+                      "enum":
+                        - null
+              "ranges":
+                "type": "object"
+                "additionalProperties":
+                  "type": "object"
+                  "properties":
+                    "low":
+                      "type": "number"
+                    "high":
+                      "type": "number"
+              "confidenceScore":
+                "type": "number"
+                "minimum": 0
+                "maximum": 1
+            "required":
+              - "nutrients"
+      "required":
+        - "userEmail"
+        - "eatenAt"
+    "FoodItem":
+      "type": "object"
+      "properties":
+        "name":
+          "type": "string"
+        "brand":
+          "type": "string"
+        "quantity":
+          "type": "number"
+          "minimum": 0
+        "unit":
+          "type": "string"
+        "notes":
+          "type": "string"
+        "nutrients":
+          "type": "object"
+          "additionalProperties":
+            "anyOf":
+              - "type": "number"
+              - "type": "string"
+                "nullable": true
+                "enum":
+                  - null
+        "ranges":
+          "type": "object"
+          "additionalProperties":
+            "type": "object"
+            "properties":
+              "low":
+                "type": "number"
+              "high":
+                "type": "number"
+        "confidenceScore":
+          "type": "number"
+          "minimum": 0
+          "maximum": 1
+      "required":
+        - "nutrients"
+    "IngestBodyRequest":
+      "type": "object"
+      "properties":
+        "userEmail":
+          "type": "string"
+          "format": "email"
+          "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+        "measuredAt":
+          "type": "string"
+          "format": "date-time"
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+        "weightKg":
+          "type": "number"
+          "minimum": 0
+          "exclusiveMinimum": true
+        "bodyFatPercent":
+          "type": "number"
+          "minimum": 0
+          "maximum": 100
+        "leanMassKg":
+          "type": "number"
+          "minimum": 0
+          "exclusiveMinimum": true
+        "waistCm":
+          "type": "number"
+          "minimum": 0
+          "exclusiveMinimum": true
+      "required":
+        - "userEmail"
+        - "measuredAt"
+        - "weightKg"
+    "IngestWorkoutRequest":
+      "type": "object"
+      "properties":
+        "userEmail":
+          "type": "string"
+          "format": "email"
+          "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+        "startedAt":
+          "type": "string"
+          "format": "date-time"
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+        "endedAt":
+          "type": "string"
+          "format": "date-time"
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+        "title":
+          "default": "Workout"
+          "type": "string"
+        "notes":
+          "type": "string"
+        "entries":
+          "type": "array"
+          "default": []
+          "description": "Strength and/or cardio exercises in this session"
+          "items":
+            "oneOf":
+              - "type": "object"
+                "properties":
+                  "type":
+                    "type": "string"
+                    "enum":
+                      - "strength"
+                  "exercise":
+                    "type": "string"
+                  "sets":
+                    "default": []
+                    "type": "array"
+                    "items":
+                      "type": "object"
+                      "properties":
+                        "reps":
+                          "type": "number"
+                        "weightKg":
+                          "type": "number"
+                        "durationSeconds":
+                          "type": "number"
+                "required":
+                  - "type"
+              - "type": "object"
+                "properties":
+                  "type":
+                    "type": "string"
+                    "enum":
+                      - "cardio"
+                  "activity":
+                    "type": "string"
+                  "durationMinutes":
+                    "type": "number"
+                  "distanceKm":
+                    "type": "number"
+                  "caloriesBurned":
+                    "type": "number"
+                "required":
+                  - "type"
+            "discriminator":
+              "propertyName": "type"
+      "required":
+        - "userEmail"
+        - "startedAt"
+    "WorkoutEntry":
+      "oneOf":
+        - "type": "object"
+          "properties":
+            "type":
+              "type": "string"
+              "enum":
+                - "strength"
+            "exercise":
+              "type": "string"
+            "sets":
+              "default": []
+              "type": "array"
+              "items":
+                "type": "object"
+                "properties":
+                  "reps":
+                    "type": "number"
+                  "weightKg":
+                    "type": "number"
+                  "durationSeconds":
+                    "type": "number"
+          "required":
+            - "type"
+        - "type": "object"
+          "properties":
+            "type":
+              "type": "string"
+              "enum":
+                - "cardio"
+            "activity":
+              "type": "string"
+            "durationMinutes":
+              "type": "number"
+            "distanceKm":
+              "type": "number"
+            "caloriesBurned":
+              "type": "number"
+          "required":
+            - "type"
+      "discriminator":
+        "propertyName": "type"
+    "StrengthEntry":
+      "type": "object"
+      "properties":
+        "type":
+          "type": "string"
+          "enum":
+            - "strength"
+        "exercise":
+          "type": "string"
+        "sets":
+          "default": []
+          "type": "array"
+          "items":
+            "type": "object"
+            "properties":
+              "reps":
+                "type": "number"
+              "weightKg":
+                "type": "number"
+              "durationSeconds":
+                "type": "number"
+      "required":
+        - "type"
+    "CardioEntry":
+      "type": "object"
+      "properties":
+        "type":
+          "type": "string"
+          "enum":
+            - "cardio"
+        "activity":
+          "type": "string"
+        "durationMinutes":
+          "type": "number"
+        "distanceKm":
+          "type": "number"
+        "caloriesBurned":
+          "type": "number"
+      "required":
+        - "type"
